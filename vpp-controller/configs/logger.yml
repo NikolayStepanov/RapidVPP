@@ -1,0 +1,3 @@
+level: debug
+output_paths: [stdout, bin/RapidVPP-log.log]
+encode_time: iso8601
