@@ -2,16 +2,22 @@ package handlers
 
 import (
 	"net/http"
+
+	"github.com/NikolayStepanov/RapidVPP/internal/delivery/http/handlers/vpp"
+	"github.com/NikolayStepanov/RapidVPP/internal/service"
 )
 
 type Handler struct {
-	router *http.ServeMux
+	router     *http.ServeMux
+	vppHandler *vpp.Handler
 }
 
-func NewHandler() *Handler {
+func NewHandler(info service.Info) *Handler {
 	handler := &Handler{
-		router: http.NewServeMux(),
+		router:     http.NewServeMux(),
+		vppHandler: vpp.NewHandler(info),
 	}
+
 	handler.setupRoutes()
 	return handler
 }

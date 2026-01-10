@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"log"
 	"os/signal"
 	"sync"
 	"syscall"
@@ -9,28 +10,38 @@ import (
 
 	"github.com/NikolayStepanov/RapidVPP/internal/config"
 	"github.com/NikolayStepanov/RapidVPP/internal/delivery/http/handlers"
+	"github.com/NikolayStepanov/RapidVPP/internal/infrastructure/vpp"
 	"github.com/NikolayStepanov/RapidVPP/internal/mw"
 	"github.com/NikolayStepanov/RapidVPP/internal/server"
 	"github.com/NikolayStepanov/RapidVPP/internal/service"
+	"github.com/NikolayStepanov/RapidVPP/internal/service/vpp/info"
 	"github.com/NikolayStepanov/RapidVPP/pkg/logger"
 	"github.com/fsnotify/fsnotify"
 	"go.uber.org/zap"
 )
 
 type App struct {
-	config   *config.Config
-	server   *server.Server
-	services *service.Services
-	handler  *handlers.Handler
+	config    *config.Config
+	server    *server.Server
+	services  *service.Services
+	handler   *handlers.Handler
+	vppClient *vpp.Client
 }
 
 func NewApp(config *config.Config) (*App, error) {
-	handler := handlers.NewHandler()
+	VPPClient, err := vpp.NewClient(config.VPP.Socket)
+	if err != nil {
+		log.Fatalf("failed to create VPP client: %v", err)
+	}
+
+	infoService := info.NewService(VPPClient)
+	handler := handlers.NewHandler(infoService)
 	server := server.NewServer(config, mw.LoggerMiddleware(handler))
 	return &App{
-		config:  config,
-		server:  server,
-		handler: handler,
+		config:    config,
+		server:    server,
+		handler:   handler,
+		vppClient: VPPClient,
 	}, nil
 }
 
@@ -53,6 +64,7 @@ func Run() {
 	if err != nil {
 		logger.Fatal("error new app", zap.Error(err))
 	}
+	defer app.vppClient.Close()
 
 	go func() {
 		defer cancel()

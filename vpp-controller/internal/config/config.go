@@ -20,10 +20,7 @@ type (
 	Config struct {
 		HTTP   HTTPConfig
 		Logger LoggerConfig
-		DB     DB
-	}
-	DB struct {
-		Connection string `mapstructure:"connection"`
+		VPP    VPPConfig
 	}
 	HTTPConfig struct {
 		Host string `mapstructure:"host"`
@@ -34,6 +31,10 @@ type (
 		Level          string   `mapstructure:"level" yaml:"level"`
 		OutputPaths    []string `mapstructure:"output_paths" yaml:"output_paths"`
 		EncoderTime    string   `mapstructure:"encode_time" yaml:"encode_time"`
+	}
+	VPPConfig struct {
+		Socket         string `yaml:"socket"`
+		StreamPoolSize int    `yaml:"stream_pool_size"`
 	}
 )
 
@@ -54,9 +55,9 @@ func Init() *Config {
 	cfg.Logger.OutputPaths = []string{
 		defaultLoggerOutputPaths,
 	}
+	cfg.VPP.Socket = "/run/vpp/api.sock"
 	return &cfg
 }
 
 func (c *Config) getEnvironmentVariables() {
-	c.DB.Connection = os.Getenv(dbConnEnvironment)
 }
