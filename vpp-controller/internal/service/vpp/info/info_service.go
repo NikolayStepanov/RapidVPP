@@ -14,6 +14,10 @@ type Service struct {
 	client *vpp.Client
 }
 
+func NewService(client *vpp.Client) *Service {
+	return &Service{client: client}
+}
+
 func (i *Service) GetVersion() (domain.Version, error) {
 	var info domain.Version
 
@@ -45,8 +49,4 @@ func (i *Service) GetVersion() (domain.Version, error) {
 	})
 
 	return info, err
-}
-
-func NewService(client *vpp.Client) *Service {
-	return &Service{client: client}
 }

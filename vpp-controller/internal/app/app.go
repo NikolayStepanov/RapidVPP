@@ -14,6 +14,7 @@ import (
 	"github.com/NikolayStepanov/RapidVPP/internal/mw"
 	"github.com/NikolayStepanov/RapidVPP/internal/server"
 	"github.com/NikolayStepanov/RapidVPP/internal/service"
+	"github.com/NikolayStepanov/RapidVPP/internal/service/vpp/Interface"
 	"github.com/NikolayStepanov/RapidVPP/internal/service/vpp/info"
 	"github.com/NikolayStepanov/RapidVPP/pkg/logger"
 	"github.com/fsnotify/fsnotify"
@@ -35,7 +36,8 @@ func NewApp(config *config.Config) (*App, error) {
 	}
 
 	infoService := info.NewService(VPPClient)
-	handler := handlers.NewHandler(infoService)
+	interfaceService := Interface.NewService(VPPClient)
+	handler := handlers.NewHandler(infoService, interfaceService)
 	server := server.NewServer(config, mw.LoggerMiddleware(handler))
 	return &App{
 		config:    config,

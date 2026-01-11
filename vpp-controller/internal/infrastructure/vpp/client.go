@@ -6,9 +6,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/NikolayStepanov/RapidVPP/pkg/logger"
 	"go.fd.io/govpp"
 	"go.fd.io/govpp/api"
+	"go.fd.io/govpp/binapi/memclnt"
 	"go.fd.io/govpp/core"
+	"go.uber.org/zap"
 )
 
 type Client struct {
@@ -41,22 +44,22 @@ func NewClient(socketPath string) (*Client, error) {
 	}, nil
 }
 
-func (v *Client) NewStream(ctx context.Context) (api.Stream, error) {
-	v.mu.RLock()
-	defer v.mu.RUnlock()
+func (c *Client) NewStream(ctx context.Context) (api.Stream, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 
-	if v.closed {
+	if c.closed {
 		return nil, fmt.Errorf("vpp client closed")
 	}
 
-	if v.conn == nil {
+	if c.conn == nil {
 		return nil, fmt.Errorf("vpp not connected")
 	}
 
-	stream, err := v.conn.NewStream(ctx,
+	stream, err := c.conn.NewStream(ctx,
 		core.WithRequestSize(50),
 		core.WithReplySize(50),
-		core.WithReplyTimeout(5*time.Second))
+		core.WithReplyTimeout(10*time.Second))
 	if err != nil {
 		return nil, fmt.Errorf("create stream failed: %w", err)
 	}
@@ -64,8 +67,8 @@ func (v *Client) NewStream(ctx context.Context) (api.Stream, error) {
 	return stream, nil
 }
 
-func (v *Client) Do(ctx context.Context, fn func(stream api.Stream) error) error {
-	stream, err := v.NewStream(ctx)
+func (c *Client) Do(ctx context.Context, fn func(stream api.Stream) error) error {
+	stream, err := c.NewStream(ctx)
 	if err != nil {
 		return err
 	}
@@ -74,29 +77,103 @@ func (v *Client) Do(ctx context.Context, fn func(stream api.Stream) error) error
 	return fn(stream)
 }
 
-func (v *Client) DoWithTimeout(timeout time.Duration, fn func(stream api.Stream) error) error {
+func (c *Client) DoWithTimeout(timeout time.Duration, fn func(stream api.Stream) error) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	return v.Do(ctx, fn)
+	return c.Do(ctx, fn)
 }
 
-func (v *Client) Close() {
-	v.mu.Lock()
-	defer v.mu.Unlock()
+func (c *Client) Close() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
-	if v.closed {
+	if c.closed {
 		return
 	}
 
-	v.closed = true
-	if v.conn != nil {
-		v.conn.Disconnect()
+	c.closed = true
+	if c.conn != nil {
+		c.conn.Disconnect()
 	}
 }
 
-func (v *Client) IsConnected() bool {
-	v.mu.RLock()
-	defer v.mu.RUnlock()
-	return !v.closed && v.conn != nil
+func (c *Client) IsConnected() bool {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return !c.closed && c.conn != nil
+}
+
+func (c *Client) SendMultiRequest(ctx context.Context, request api.Message) ([]api.Message, error) {
+	stream, err := c.NewStream(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("create stream: %w", err)
+	}
+	defer stream.Close()
+
+	if err := stream.SendMsg(request); err != nil {
+		logger.Error("send request failed", zap.Error(err))
+		return nil, fmt.Errorf("send request: %w", err)
+	}
+	err = stream.SendMsg(&memclnt.ControlPing{})
+	if err != nil {
+		logger.Error("send ping failed", zap.Error(err))
+		return nil, err
+	}
+
+	var messages []api.Message
+
+	for {
+		message, err := stream.RecvMsg()
+		if err != nil {
+			logger.Error("recv message failed", zap.Error(err))
+			return nil, fmt.Errorf("receive message: %w", err)
+		}
+		switch message.(type) {
+		case *memclnt.ControlPingReply:
+			return messages, nil
+		default:
+			messages = append(messages, message)
+		}
+	}
+}
+
+func (c *Client) SendMultiRequestWithTimeout(timeout time.Duration, request api.Message) ([]api.Message, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	return c.SendMultiRequest(ctx, request)
+}
+
+func Dump[T any](
+	ctx context.Context,
+	client *Client,
+	request api.Message,
+	converter func(api.Message) (T, bool),
+) ([]T, error) {
+	var results []T
+
+	messages, err := client.SendMultiRequest(ctx, request)
+	if err != nil {
+		logger.Debug("dump request failed", zap.Error(err))
+		return nil, err
+	}
+	for _, message := range messages {
+		if item, ok := converter(message); ok {
+			logger.Debug("dump message received", zap.Any("message", item))
+			results = append(results, item)
+		}
+	}
+
+	return results, nil
+}
+
+func DumpWithTimeout[T any](
+	client *Client,
+	timeout time.Duration,
+	request api.Message,
+	converter func(api.Message) (T, bool),
+) ([]T, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	return Dump(ctx, client, request, converter)
 }

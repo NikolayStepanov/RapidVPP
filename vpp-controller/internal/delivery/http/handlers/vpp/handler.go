@@ -20,8 +20,8 @@ func NewHandler(info service.Info) *Handler {
 func (h *Handler) GetVersion(w http.ResponseWriter, r *http.Request) {
 	version, err := h.infoService.GetVersion()
 	if err != nil {
-		logger.Error("Failed to get questions", zap.Error(err))
-		http.Error(w, "Failed to get questions", http.StatusBadRequest)
+		logger.Error("Failed to get version", zap.Error(err))
+		http.Error(w, "Failed to get version", http.StatusBadRequest)
 		return
 	}
 

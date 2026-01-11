@@ -3,19 +3,22 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/NikolayStepanov/RapidVPP/internal/delivery/http/handlers/Interfaces"
 	"github.com/NikolayStepanov/RapidVPP/internal/delivery/http/handlers/vpp"
 	"github.com/NikolayStepanov/RapidVPP/internal/service"
 )
 
 type Handler struct {
-	router     *http.ServeMux
-	vppHandler *vpp.Handler
+	router           *http.ServeMux
+	vppHandler       *vpp.Handler
+	interfaceHandler *Interfaces.Handler
 }
 
-func NewHandler(info service.Info) *Handler {
+func NewHandler(info service.Info, inter service.Interface) *Handler {
 	handler := &Handler{
-		router:     http.NewServeMux(),
-		vppHandler: vpp.NewHandler(info),
+		router:           http.NewServeMux(),
+		vppHandler:       vpp.NewHandler(info),
+		interfaceHandler: Interfaces.NewHandler(inter),
 	}
 
 	handler.setupRoutes()
