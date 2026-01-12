@@ -14,8 +14,8 @@ import (
 	"github.com/NikolayStepanov/RapidVPP/internal/mw"
 	"github.com/NikolayStepanov/RapidVPP/internal/server"
 	"github.com/NikolayStepanov/RapidVPP/internal/service"
-	"github.com/NikolayStepanov/RapidVPP/internal/service/vpp/Interface"
 	"github.com/NikolayStepanov/RapidVPP/internal/service/vpp/info"
+	"github.com/NikolayStepanov/RapidVPP/internal/service/vpp/interfaces"
 	"github.com/NikolayStepanov/RapidVPP/pkg/logger"
 	"github.com/fsnotify/fsnotify"
 	"go.uber.org/zap"
@@ -36,7 +36,7 @@ func NewApp(config *config.Config) (*App, error) {
 	}
 
 	infoService := info.NewService(VPPClient)
-	interfaceService := Interface.NewService(VPPClient)
+	interfaceService := interfaces.NewService(VPPClient)
 	handler := handlers.NewHandler(infoService, interfaceService)
 	server := server.NewServer(config, mw.LoggerMiddleware(handler))
 	return &App{

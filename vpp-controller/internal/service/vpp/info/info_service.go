@@ -1,8 +1,8 @@
 package info
 
 import (
+	"context"
 	"fmt"
-	"time"
 
 	"github.com/NikolayStepanov/RapidVPP/internal/domain"
 	"github.com/NikolayStepanov/RapidVPP/internal/infrastructure/vpp"
@@ -18,10 +18,10 @@ func NewService(client *vpp.Client) *Service {
 	return &Service{client: client}
 }
 
-func (i *Service) GetVersion() (domain.Version, error) {
+func (i *Service) GetVersion(ctx context.Context) (domain.Version, error) {
 	var info domain.Version
 
-	err := i.client.DoWithTimeout(5*time.Second, func(stream api.Stream) error {
+	err := i.client.Do(ctx, func(stream api.Stream) error {
 		req := &vpe.ShowVersion{}
 
 		if err := stream.SendMsg(req); err != nil {

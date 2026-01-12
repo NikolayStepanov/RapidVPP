@@ -1,15 +1,16 @@
 package service
 
 import (
+	"context"
 	"github.com/NikolayStepanov/RapidVPP/internal/domain"
 	interfaces "go.fd.io/govpp/binapi/interface"
 )
 
 type Info interface {
-	GetVersion() (domain.Version, error)
+	GetVersion(ctx context.Context) (domain.Version, error)
 }
 type Interface interface {
-	List() ([]interfaces.SwInterfaceDetails, error)
+	List(ctx context.Context) ([]interfaces.SwInterfaceDetails, error)
 }
 type Services struct {
 	Info      Info

@@ -11,14 +11,14 @@ import (
 type Handler struct {
 	router           *http.ServeMux
 	vppHandler       *vpp.Handler
-	interfaceHandler *Interfaces.Handler
+	interfaceHandler *interfaces.Handler
 }
 
 func NewHandler(info service.Info, inter service.Interface) *Handler {
 	handler := &Handler{
 		router:           http.NewServeMux(),
 		vppHandler:       vpp.NewHandler(info),
-		interfaceHandler: Interfaces.NewHandler(inter),
+		interfaceHandler: interfaces.NewHandler(inter),
 	}
 
 	handler.setupRoutes()

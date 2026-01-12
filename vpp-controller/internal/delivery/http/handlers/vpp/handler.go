@@ -18,7 +18,7 @@ func NewHandler(info service.Info) *Handler {
 }
 
 func (h *Handler) GetVersion(w http.ResponseWriter, r *http.Request) {
-	version, err := h.infoService.GetVersion()
+	version, err := h.infoService.GetVersion(r.Context())
 	if err != nil {
 		logger.Error("Failed to get version", zap.Error(err))
 		http.Error(w, "Failed to get version", http.StatusBadRequest)

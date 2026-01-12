@@ -1,4 +1,4 @@
-package Interfaces
+package interfaces
 
 import (
 	"encoding/json"
@@ -18,7 +18,7 @@ func NewHandler(inter service.Interface) *Handler {
 }
 
 func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
-	interfaces, err := h.inter.List()
+	interfaces, err := h.inter.List(r.Context())
 	if err != nil {
 		logger.Error("Failed to get list interfaces", zap.Error(err))
 		http.Error(w, "Failed to get list interfaces", http.StatusBadRequest)
