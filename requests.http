@@ -1,0 +1,5 @@
+### version vpp
+GET {{host}}/vpp/version
+
+### list all interfaces
+GET {{host}}/interfaces/

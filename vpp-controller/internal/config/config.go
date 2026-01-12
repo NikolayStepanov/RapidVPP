@@ -7,7 +7,7 @@ import (
 
 const (
 	defaultHttpHost = ""
-	defaultHttpPort = "8082"
+	defaultHttpPort = "8080"
 
 	defaultConfigDir            = "configs/"
 	defaultLoggerConfigFileName = "/configs/logger.yml"
