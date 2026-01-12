@@ -9,3 +9,11 @@ POST {{host}}/interfaces/loopback
 Content-Type: application/json
 
 {}
+
+### set interface admin state
+POST {{host}}/interfaces/2/state
+Content-Type: application/json
+
+{
+  "admin_up": true
+}

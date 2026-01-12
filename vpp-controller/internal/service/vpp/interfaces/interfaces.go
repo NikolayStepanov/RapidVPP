@@ -7,10 +7,18 @@ import (
 	"github.com/NikolayStepanov/RapidVPP/internal/infrastructure/vpp"
 	"go.fd.io/govpp/api"
 	interfaces "go.fd.io/govpp/binapi/interface"
+	"go.fd.io/govpp/binapi/interface_types"
 )
+
+type SwIfFlagsReq = interfaces.SwInterfaceSetFlags
+type SwIfFlagsReply = interfaces.SwInterfaceSetFlagsReply
 
 type Service struct {
 	client *vpp.Client
+}
+
+func NewService(client *vpp.Client) *Service {
+	return &Service{client: client}
 }
 
 func (s *Service) CreateLoopback(ctx context.Context) (interfaces.CreateLoopbackReply, error) {
@@ -22,10 +30,6 @@ func (s *Service) CreateLoopback(ctx context.Context) (interfaces.CreateLoopback
 	}
 
 	return *reply, nil
-}
-
-func NewService(client *vpp.Client) *Service {
-	return &Service{client: client}
 }
 
 func (s *Service) List(ctx context.Context) ([]interfaces.SwInterfaceDetails, error) {
@@ -42,4 +46,24 @@ func (s *Service) List(ctx context.Context) ([]interfaces.SwInterfaceDetails, er
 	}
 
 	return vpp.Dump(ctx, s.client, request, converter)
+}
+
+func (s *Service) SetInterfaceAdminState(ctx context.Context, ifIndex uint32, up bool) error {
+	var flags interface_types.IfStatusFlags
+
+	if up {
+		flags = interface_types.IF_STATUS_API_FLAG_ADMIN_UP
+	}
+
+	req := &SwIfFlagsReq{
+		SwIfIndex: interface_types.InterfaceIndex(ifIndex),
+		Flags:     flags,
+	}
+
+	_, err := vpp.DoRequest[*SwIfFlagsReq, *SwIfFlagsReply](s.client, ctx, req)
+	if err != nil {
+		return fmt.Errorf("set interface admin state failed: %w", err)
+	}
+
+	return nil
 }
