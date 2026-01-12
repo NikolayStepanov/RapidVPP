@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/NikolayStepanov/RapidVPP/internal/domain"
 	interfaces "go.fd.io/govpp/binapi/interface"
 )
@@ -11,6 +12,7 @@ type Info interface {
 }
 type Interface interface {
 	List(ctx context.Context) ([]interfaces.SwInterfaceDetails, error)
+	CreateLoopback(ctx context.Context) (interfaces.CreateLoopbackReply, error)
 }
 type Services struct {
 	Info      Info

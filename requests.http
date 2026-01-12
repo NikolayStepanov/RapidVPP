@@ -3,3 +3,9 @@ GET {{host}}/vpp/version
 
 ### list all interfaces
 GET {{host}}/interfaces/
+
+### create loopback
+POST {{host}}/interfaces/loopback
+Content-Type: application/json
+
+{}

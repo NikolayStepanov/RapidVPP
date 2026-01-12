@@ -3,6 +3,7 @@ package vpp
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"sync"
 	"time"
 
@@ -121,7 +122,10 @@ func (c *Client) SendMultiRequest(ctx context.Context, request api.Message) ([]a
 		return nil, err
 	}
 
-	var messages []api.Message
+	var (
+		messages []api.Message
+		errors   []error
+	)
 
 	for {
 		message, err := stream.RecvMsg()
@@ -131,11 +135,36 @@ func (c *Client) SendMultiRequest(ctx context.Context, request api.Message) ([]a
 		}
 		switch message.(type) {
 		case *memclnt.ControlPingReply:
+			if len(errors) > 0 {
+				return messages, fmt.Errorf("completed with %d errors: %v", len(errors), errors)
+			}
 			return messages, nil
 		default:
+			// TODO: Retval check via reflection is suboptimal
+			if retval := getRetval(message); retval != 0 {
+				errors = append(errors, fmt.Errorf("retval=%d for %T", retval, message))
+				continue
+			}
 			messages = append(messages, message)
 		}
 	}
+}
+
+func getRetval(msg api.Message) int32 {
+	if m, ok := msg.(interface{ Retval() int32 }); ok {
+		return m.Retval()
+	}
+	v := reflect.ValueOf(msg)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	if v.Kind() == reflect.Struct {
+		f := v.FieldByName("Retval")
+		if f.IsValid() && f.Kind() == reflect.Int32 {
+			return int32(f.Int())
+		}
+	}
+	return 0
 }
 
 func (c *Client) SendMultiRequestWithTimeout(timeout time.Duration, request api.Message) ([]api.Message, error) {
@@ -176,4 +205,36 @@ func DumpWithTimeout[T any](
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	return Dump(ctx, client, request, converter)
+}
+
+func DoRequest[Req, Resp api.Message](client *Client, ctx context.Context, req Req) (Resp, error) {
+	var emptyResp Resp
+	var reply Resp
+
+	err := client.Do(ctx, func(stream api.Stream) error {
+		if err := stream.SendMsg(req); err != nil {
+			return fmt.Errorf("send request: %w", err)
+		}
+
+		msg, err := stream.RecvMsg()
+		if err != nil {
+			return fmt.Errorf("receive reply: %w", err)
+		}
+
+		var ok bool
+		reply, ok = msg.(Resp)
+		if !ok {
+			return fmt.Errorf("unexpected message type: %T, expected %T", msg, reply)
+		}
+		if retval := getRetval(reply); retval != 0 {
+			return fmt.Errorf("retval=%d for %T", retval, reply)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return emptyResp, err
+	}
+
+	return reply, nil
 }

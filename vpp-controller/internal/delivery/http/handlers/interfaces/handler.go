@@ -31,3 +31,18 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (h *Handler) CreateLoopback(w http.ResponseWriter, r *http.Request) {
+	createLoopbackResponse, err := h.inter.CreateLoopback(r.Context())
+	if err != nil {
+		logger.Error("Failed to get list interfaces", zap.Error(err))
+		http.Error(w, "Failed to get list interfaces", http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(createLoopbackResponse); err != nil {
+		logger.Error("Failed to encode response", zap.Error(err))
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+}

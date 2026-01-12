@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/NikolayStepanov/RapidVPP/internal/infrastructure/vpp"
 	"go.fd.io/govpp/api"
@@ -10,6 +11,17 @@ import (
 
 type Service struct {
 	client *vpp.Client
+}
+
+func (s *Service) CreateLoopback(ctx context.Context) (interfaces.CreateLoopbackReply, error) {
+	req := &interfaces.CreateLoopback{}
+
+	reply, err := vpp.DoRequest[*interfaces.CreateLoopback, *interfaces.CreateLoopbackReply](s.client, ctx, req)
+	if err != nil {
+		return interfaces.CreateLoopbackReply{}, fmt.Errorf("create loopback operation failed: %w", err)
+	}
+
+	return *reply, nil
 }
 
 func NewService(client *vpp.Client) *Service {
@@ -28,5 +40,6 @@ func (s *Service) List(ctx context.Context) ([]interfaces.SwInterfaceDetails, er
 		}
 		return interfaces.SwInterfaceDetails{}, false
 	}
+
 	return vpp.Dump(ctx, s.client, request, converter)
 }
