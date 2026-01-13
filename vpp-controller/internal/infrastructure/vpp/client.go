@@ -224,10 +224,11 @@ func DoRequest[Req, Resp api.Message](client *Client, ctx context.Context, req R
 		var ok bool
 		reply, ok = msg.(Resp)
 		if !ok {
+			logger.Debug("reply is not a Resp", zap.Any("reply", reply))
 			return fmt.Errorf("unexpected message type: %T, expected %T", msg, reply)
 		}
 		if retval := getRetval(reply); retval != 0 {
-			return fmt.Errorf("%w", api.RetvalToVPPApiError(retval))
+			return api.RetvalToVPPApiError(retval)
 		}
 		return nil
 	})

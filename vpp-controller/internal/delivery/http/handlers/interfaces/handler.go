@@ -2,10 +2,13 @@ package interfaces
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
+	"github.com/NikolayStepanov/RapidVPP/internal/domain"
 	"github.com/NikolayStepanov/RapidVPP/internal/service"
+	"github.com/NikolayStepanov/RapidVPP/internal/service/vpp/interfaces"
 	"github.com/NikolayStepanov/RapidVPP/pkg/logger"
 	"go.uber.org/zap"
 )
@@ -90,4 +93,41 @@ func (h *Handler) DeleteLoopback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Handler) AddInterfaceIP(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	var req AddIPRequest
+	idStr := r.PathValue("id")
+	ifIndex, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		logger.Warn("Invalid index interface in request", zap.String("id", idStr), zap.Error(err))
+		http.Error(w, "Invalid index interface", http.StatusBadRequest)
+		return
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Warn("Invalid request body", zap.Error(err))
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+	}
+	logger.Debug("req ", zap.Any("req", req))
+	IPWithPrefix := domain.IPWithPrefix{req.Address, req.Prefix}
+	err = h.inter.SetInterfaceIP(r.Context(), uint32(ifIndex), IPWithPrefix)
+	switch {
+	case errors.Is(err, interfaces.ErrNotFound):
+		logger.Error("Failed interface not found", zap.Error(err))
+		http.Error(w, "interface not found", http.StatusNotFound)
+	case errors.Is(err, interfaces.ErrAlreadyExists):
+		logger.Error("Failed IP address already exists", zap.Error(err))
+		http.Error(w, "IP address already exists", http.StatusConflict)
+	case err != nil:
+		logger.Error("Failed to add interface IP", zap.Error(err))
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	default:
+		w.WriteHeader(http.StatusOK)
+	}
+	if err != nil {
+		logger.Error("Failed to set interface state", zap.Error(err))
+		http.Error(w, "Failed to set interface state", http.StatusBadRequest)
+		return
+	}
 }

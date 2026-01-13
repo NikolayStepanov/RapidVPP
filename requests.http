@@ -20,3 +20,12 @@ Content-Type: application/json
 
 ### delete loopback interface
 DELETE {{host}}/interfaces/1
+
+### add ip adress interface
+POST {{host}}/interfaces/1/ip
+Content-Type: application/json
+
+{
+  "address": "10.0.0.1",
+  "prefix": 24
+}

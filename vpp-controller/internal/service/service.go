@@ -15,6 +15,7 @@ type Interface interface {
 	CreateLoopback(ctx context.Context) (interfaces.CreateLoopbackReply, error)
 	DeleteLoopback(ctx context.Context, ifIndex uint32) error
 	SetInterfaceAdminState(ctx context.Context, ifIndex uint32, up bool) error
+	SetInterfaceIP(ctx context.Context, ifIndex uint32, IPPrefix domain.IPWithPrefix) error
 }
 type Services struct {
 	Info      Info
