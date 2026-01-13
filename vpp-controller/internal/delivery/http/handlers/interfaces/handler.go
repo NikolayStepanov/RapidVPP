@@ -50,6 +50,7 @@ func (h *Handler) CreateLoopback(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) SetInterfaceState(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
 	var req SetInterfaceStateRequests
 	idStr := r.PathValue("id")
 	ifIndex, err := strconv.ParseUint(idStr, 10, 32)
@@ -68,6 +69,24 @@ func (h *Handler) SetInterfaceState(w http.ResponseWriter, r *http.Request) {
 		logger.Error("Failed to set interface state", zap.Error(err))
 		http.Error(w, "Failed to set interface state", http.StatusBadRequest)
 		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Handler) DeleteLoopback(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	ifIndex, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		logger.Warn("Invalid index interface in request", zap.String("id", idStr), zap.Error(err))
+		http.Error(w, "Invalid index interface", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.inter.DeleteLoopback(r.Context(), uint32(ifIndex)); err != nil {
+		logger.Error("Failed to delete loopback interface", zap.Uint64("ifIndex", ifIndex), zap.Error(err))
+	} else {
+		logger.Info("Loopback interface deleted successfully", zap.Uint64("ifIndex", ifIndex))
 	}
 
 	w.WriteHeader(http.StatusNoContent)

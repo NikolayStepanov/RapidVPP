@@ -67,3 +67,15 @@ func (s *Service) SetInterfaceAdminState(ctx context.Context, ifIndex uint32, up
 
 	return nil
 }
+
+func (s *Service) DeleteLoopback(ctx context.Context, ifIndex uint32) error {
+	req := &interfaces.DeleteLoopback{
+		SwIfIndex: interface_types.InterfaceIndex(ifIndex),
+	}
+
+	_, err := vpp.DoRequest[*interfaces.DeleteLoopback, *interfaces.DeleteLoopbackReply](s.client, ctx, req)
+	if err != nil {
+		return fmt.Errorf("delete loopback failed: %w", err)
+	}
+	return nil
+}

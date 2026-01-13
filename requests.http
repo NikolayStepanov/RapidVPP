@@ -11,9 +11,12 @@ Content-Type: application/json
 {}
 
 ### set interface admin state
-POST {{host}}/interfaces/2/state
+POST {{host}}/interfaces/1/state
 Content-Type: application/json
 
 {
   "admin_up": true
 }
+
+### delete loopback interface
+DELETE {{host}}/interfaces/1

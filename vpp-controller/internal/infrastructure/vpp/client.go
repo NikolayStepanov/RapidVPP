@@ -142,7 +142,7 @@ func (c *Client) SendMultiRequest(ctx context.Context, request api.Message) ([]a
 		default:
 			// TODO: Retval check via reflection is suboptimal
 			if retval := getRetval(message); retval != 0 {
-				errors = append(errors, fmt.Errorf("retval=%d for %T", retval, message))
+				errors = append(errors, fmt.Errorf("%w:%s", api.RetvalToVPPApiError(retval), message))
 				continue
 			}
 			messages = append(messages, message)
@@ -227,7 +227,7 @@ func DoRequest[Req, Resp api.Message](client *Client, ctx context.Context, req R
 			return fmt.Errorf("unexpected message type: %T, expected %T", msg, reply)
 		}
 		if retval := getRetval(reply); retval != 0 {
-			return fmt.Errorf("retval=%d for %T", retval, reply)
+			return fmt.Errorf("%w", api.RetvalToVPPApiError(retval))
 		}
 		return nil
 	})

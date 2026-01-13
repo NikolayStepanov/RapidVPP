@@ -13,6 +13,7 @@ type Info interface {
 type Interface interface {
 	List(ctx context.Context) ([]interfaces.SwInterfaceDetails, error)
 	CreateLoopback(ctx context.Context) (interfaces.CreateLoopbackReply, error)
+	DeleteLoopback(ctx context.Context, ifIndex uint32) error
 	SetInterfaceAdminState(ctx context.Context, ifIndex uint32, up bool) error
 }
 type Services struct {
