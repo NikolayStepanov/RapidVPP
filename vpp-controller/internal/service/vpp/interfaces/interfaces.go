@@ -104,7 +104,7 @@ func (s *Service) SetInterfaceIP(ctx context.Context, ifIndex uint32, IPPrefix d
 			Len:     IPPrefix.Prefix,
 		},
 	}
-	logger.Debug("req ", zap.Any("req", req))
+
 	_, err := vpp.DoRequest[*SwIfAddDelAddrReq, *SwIfAddDelAddrReply](s.client, ctx, req)
 	if err != nil {
 		logger.Error("set interface ip address failed", zap.Error(err))

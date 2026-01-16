@@ -53,7 +53,6 @@ func (h *Handler) CreateLoopback(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) SetInterfaceState(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
 	var req SetInterfaceStateRequests
 	idStr := r.PathValue("id")
 	ifIndex, err := strconv.ParseUint(idStr, 10, 32)
@@ -96,7 +95,6 @@ func (h *Handler) DeleteLoopback(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) AddInterfaceIP(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
 	var req AddIPRequest
 	idStr := r.PathValue("id")
 	ifIndex, err := strconv.ParseUint(idStr, 10, 32)

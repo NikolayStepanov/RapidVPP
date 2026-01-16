@@ -6,6 +6,7 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0
 	go.fd.io/govpp v0.13.0
 	go.uber.org/zap v1.27.1
+	golang.org/x/net v0.43.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 

@@ -18,14 +18,49 @@ Content-Type: application/json
   "admin_up": true
 }
 
-### delete loopback interface
-DELETE {{host}}/interfaces/1
+### set interface admin state
+POST {{host}}/interfaces/2/state
+Content-Type: application/json
 
-### add ip adress interface
+{
+  "admin_up": true
+}
+
+### add ip adress interface 1
 POST {{host}}/interfaces/1/ip
 Content-Type: application/json
 
 {
-  "address": "10.0.0.1",
+  "address": "10.0.0.2",
   "prefix": 24
 }
+
+### add ip adress interface 2
+POST {{host}}/interfaces/2/ip
+Content-Type: application/json
+
+{
+  "address": "192.168.1.1",
+  "prefix": 24
+}
+
+
+### add route
+POST {{host}}/routes
+Content-Type: application/json
+
+{
+  "destination": "0.0.0.0/0",
+  "vrf": 0,
+  "next_hops": [
+    {
+      "ip": "10.0.0.1",
+      "if_index": 1,
+      "weight": 1,
+      "drop": false
+    }
+  ]
+}
+
+### delete loopback interface
+DELETE {{host}}/interfaces/1
