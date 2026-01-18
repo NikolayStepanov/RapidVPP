@@ -1,6 +1,7 @@
 package ip
 
 import (
+	"context"
 	"fmt"
 	"net"
 
@@ -10,7 +11,6 @@ import (
 	"go.fd.io/govpp/binapi/fib_types"
 	"go.fd.io/govpp/binapi/ip"
 	"go.fd.io/govpp/binapi/ip_types"
-	"golang.org/x/net/context"
 )
 
 type Service struct {
@@ -49,9 +49,32 @@ func buildRouteRequest(route *domain.Route, paths []fib_types.FibPath) *ip.IPRou
 	}
 }
 
-func (s *Service) DeleteRoute(ctx context.Context, dst domain.IPWithPrefix, vrf uint32) error {
-	//TODO implement me
-	panic("implement me")
+func (s *Service) DeleteRoute(ctx context.Context, route *domain.Route) error {
+	paths, err := mapper.BuildFibPaths(route.NextHops)
+	if err != nil {
+		return fmt.Errorf("build fib paths: %w", err)
+	}
+
+	req := &ip.IPRouteAddDel{
+		IsAdd:       false,
+		IsMultipath: len(paths) > 1,
+		Route: ip.IPRoute{
+			TableID: route.VRF,
+			Prefix: ip_types.Prefix{
+				Address: ip_types.NewAddress(net.ParseIP(route.Dst.Address)),
+				Len:     route.Dst.Prefix,
+			},
+			NPaths: uint8(len(paths)),
+			Paths:  paths,
+		},
+	}
+
+	_, err = vpp.DoRequest[*ip.IPRouteAddDel, *ip.IPRouteAddDelReply](s.client, ctx, req)
+	if err != nil {
+		return fmt.Errorf("delete route from VPP: %w", err)
+	}
+
+	return nil
 }
 
 func (s *Service) ListRoutes(ctx context.Context, vrf uint32) ([]domain.Route, error) {

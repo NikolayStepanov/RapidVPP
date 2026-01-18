@@ -4,7 +4,13 @@ GET {{host}}/vpp/version
 ### list all interfaces
 GET {{host}}/interfaces/
 
-### create loopback
+### create loopback 1
+POST {{host}}/interfaces/loopback
+Content-Type: application/json
+
+{}
+
+### create loopback 2
 POST {{host}}/interfaces/loopback
 Content-Type: application/json
 
@@ -62,5 +68,25 @@ Content-Type: application/json
   ]
 }
 
-### delete loopback interface
+### delete loopback interface 1
 DELETE {{host}}/interfaces/1
+
+### delete loopback interface 2
+DELETE {{host}}/interfaces/2
+
+### delete route
+DELETE {{host}}/routes
+Content-Type: application/json
+
+{
+  "destination": "0.0.0.0/0",
+  "vrf": 0,
+  "next_hops": [
+    {
+      "ip": "10.0.0.1",
+      "if_index": 1,
+      "weight": 1,
+      "drop": false
+    }
+  ]
+}

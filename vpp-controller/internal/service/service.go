@@ -20,7 +20,7 @@ type Interface interface {
 
 type Route interface {
 	AddRoute(ctx context.Context, route *domain.Route) error
-	DeleteRoute(ctx context.Context, dst domain.IPWithPrefix, vrf uint32) error
+	DeleteRoute(ctx context.Context, route *domain.Route) error
 	ListRoutes(ctx context.Context, vrf uint32) ([]domain.Route, error)
 	GetRoute(ctx context.Context, dst domain.IPWithPrefix, vrf uint32) (domain.Route, error)
 }
