@@ -3,6 +3,7 @@ package ip
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/NikolayStepanov/RapidVPP/internal/service"
 	"github.com/NikolayStepanov/RapidVPP/pkg/logger"
@@ -59,4 +60,31 @@ func (h *Handler) DeleteRoute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
+	vrfStr := r.URL.Query().Get("vrf")
+	var vrf uint32 = 0
+
+	if vrfStr != "" {
+		vrfInt, err := strconv.ParseUint(vrfStr, 10, 32)
+		if err != nil {
+			logger.Error("Invalid VRF parameter", zap.String("vrf", vrfStr), zap.Error(err))
+			http.Error(w, "Invalid VRF parameter. Must be a number", http.StatusBadRequest)
+			return
+		}
+		vrf = uint32(vrfInt)
+	}
+	routes, err := h.ip.ListRoutes(r.Context(), vrf)
+	if err != nil {
+		logger.Error("Failed to get list routes", zap.Error(err))
+		http.Error(w, "Failed to get list routes", http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(routes); err != nil {
+		logger.Error("Failed to encode response", zap.Error(err))
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
 }

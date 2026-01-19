@@ -68,11 +68,8 @@ Content-Type: application/json
   ]
 }
 
-### delete loopback interface 1
-DELETE {{host}}/interfaces/1
-
-### delete loopback interface 2
-DELETE {{host}}/interfaces/2
+### get list routes
+GET {{host}}/routes?vrf=0
 
 ### delete route
 DELETE {{host}}/routes
@@ -90,3 +87,9 @@ Content-Type: application/json
     }
   ]
 }
+
+### delete loopback interface 1
+DELETE {{host}}/interfaces/1
+
+### delete loopback interface 2
+DELETE {{host}}/interfaces/2

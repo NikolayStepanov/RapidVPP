@@ -3,11 +3,13 @@ package ip
 import (
 	"context"
 	"fmt"
+	"log"
 	"net"
 
 	"github.com/NikolayStepanov/RapidVPP/internal/domain"
 	"github.com/NikolayStepanov/RapidVPP/internal/infrastructure/vpp"
 	"github.com/NikolayStepanov/RapidVPP/internal/mapper"
+	"go.fd.io/govpp/api"
 	"go.fd.io/govpp/binapi/fib_types"
 	"go.fd.io/govpp/binapi/ip"
 	"go.fd.io/govpp/binapi/ip_types"
@@ -78,8 +80,43 @@ func (s *Service) DeleteRoute(ctx context.Context, route *domain.Route) error {
 }
 
 func (s *Service) ListRoutes(ctx context.Context, vrf uint32) ([]domain.Route, error) {
-	//TODO implement me
-	panic("implement me")
+	request := &ip.IPRouteDump{
+		Table: ip.IPTable{
+			TableID: vrf,
+			IsIP6:   false,
+			Name:    "",
+		},
+	}
+
+	converter := func(msg api.Message) (domain.Route, bool) {
+		details, ok := msg.(*ip.IPRouteDetails)
+		if !ok {
+			return domain.Route{}, false
+		}
+
+		route, err := mapper.ConvertRouteDetails(details)
+		if err != nil {
+			log.Printf("Failed to convert route: %v", err)
+			return domain.Route{}, false
+		}
+
+		return route, true
+	}
+
+	routesIPv4, err := vpp.Dump(ctx, s.client, request, converter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to dump IPv4 routes: %w", err)
+	}
+
+	request.Table.IsIP6 = true
+	routesIPv6, err := vpp.Dump(ctx, s.client, request, converter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to dump IPv6 routes: %w", err)
+	}
+
+	allRoutes := append(routesIPv4, routesIPv6...)
+
+	return allRoutes, nil
 }
 
 func (s *Service) GetRoute(ctx context.Context, dst domain.IPWithPrefix, vrf uint32) (domain.Route, error) {
