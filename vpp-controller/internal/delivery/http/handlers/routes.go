@@ -10,4 +10,5 @@ func (h *Handler) setupRoutes() {
 	h.router.HandleFunc("POST /routes", h.ipHandler.AddRoute)
 	h.router.HandleFunc("DELETE /routes", h.ipHandler.DeleteRoute)
 	h.router.HandleFunc("GET /routes", h.ipHandler.List)
+	h.router.HandleFunc("GET /routes/{vrf}", h.ipHandler.Get)
 }

@@ -71,6 +71,10 @@ Content-Type: application/json
 ### get list routes
 GET {{host}}/routes?vrf=0
 
+### get routes
+GET  {{host}}/routes/0?prefix=0.0.0.0/0
+
+
 ### delete route
 DELETE {{host}}/routes
 Content-Type: application/json

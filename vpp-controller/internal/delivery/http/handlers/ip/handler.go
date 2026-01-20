@@ -2,9 +2,11 @@ package ip
 
 import (
 	"encoding/json"
+	"net"
 	"net/http"
 	"strconv"
 
+	"github.com/NikolayStepanov/RapidVPP/internal/domain"
 	"github.com/NikolayStepanov/RapidVPP/internal/service"
 	"github.com/NikolayStepanov/RapidVPP/pkg/logger"
 	"go.uber.org/zap"
@@ -83,6 +85,61 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(routes); err != nil {
+		logger.Error("Failed to encode response", zap.Error(err))
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
+	vrfStr := r.PathValue("vrf")
+	if vrfStr == "" {
+		logger.Error("VRF not found in path", zap.String("vrf", vrfStr))
+		http.Error(w, "VRF not found in path", http.StatusBadRequest)
+		return
+	}
+
+	vrfInt, err := strconv.ParseUint(vrfStr, 10, 32)
+	if err != nil {
+		logger.Error("Invalid VRF parameter", zap.String("vrf", vrfStr), zap.Error(err))
+		http.Error(w, "Invalid VRF ID", http.StatusBadRequest)
+		return
+	}
+	vrf := uint32(vrfInt)
+
+	prefixStr := r.URL.Query().Get("prefix")
+	if prefixStr == "" {
+		logger.Error("Invalid prefix parameter", zap.String("prefix", prefixStr))
+		http.Error(w, "Invalid prefix parameter", http.StatusBadRequest)
+		return
+	}
+
+	ip, netw, err := net.ParseCIDR(prefixStr)
+	if err != nil {
+		logger.Error("Invalid prefix query param", zap.String("prefix", prefixStr), zap.Error(err))
+		http.Error(w, "Invalid prefix format. Use: address/prefix", http.StatusBadRequest)
+		return
+	}
+
+	ones, _ := netw.Mask.Size()
+
+	dst := domain.IPWithPrefix{
+		Address: ip.String(),
+		Prefix:  uint8(ones),
+	}
+
+	route, err := h.ip.GetRoute(r.Context(), dst, vrf)
+	if err != nil {
+		logger.Error("Failed to get route",
+			zap.String("prefix", prefixStr),
+			zap.Uint32("vrf", vrf),
+			zap.Error(err))
+		http.Error(w, "Route not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(route); err != nil {
 		logger.Error("Failed to encode response", zap.Error(err))
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return

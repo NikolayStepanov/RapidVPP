@@ -120,8 +120,32 @@ func (s *Service) ListRoutes(ctx context.Context, vrf uint32) ([]domain.Route, e
 }
 
 func (s *Service) GetRoute(ctx context.Context, dst domain.IPWithPrefix, vrf uint32) (domain.Route, error) {
-	//TODO implement me
-	panic("implement me")
+	dstIP := net.ParseIP(dst.Address)
+	if dstIP == nil {
+		return domain.Route{}, fmt.Errorf("invalid IP address: %s", dst.Address)
+	}
+
+	req := &ip.IPRouteLookup{
+		TableID: vrf,
+		Prefix: ip_types.Prefix{
+			Address: ip_types.NewAddress(dstIP),
+			Len:     dst.Prefix,
+		},
+		Exact: 1,
+	}
+
+	reply, err := vpp.DoRequest[*ip.IPRouteLookup, *ip.IPRouteLookupReply](
+		s.client, ctx, req)
+	if err != nil {
+		return domain.Route{}, fmt.Errorf("IPRouteLookup failed: %w", err)
+	}
+	routeDetails := &ip.IPRouteDetails{Route: reply.Route}
+	route, err := mapper.ConvertRouteDetails(routeDetails)
+	if err != nil {
+		return domain.Route{}, fmt.Errorf("failed to convert route details: %w", err)
+	}
+
+	return route, nil
 }
 
 func (s *Service) CreateVRF(ctx context.Context, id uint32, name string) error {
