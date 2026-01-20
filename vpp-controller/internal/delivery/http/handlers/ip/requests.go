@@ -21,3 +21,8 @@ type NextHopRequest struct {
 	Weight  uint8  `json:"weight"`
 	Drop    bool   `json:"drop"`
 }
+
+type CreateVRFRequest struct {
+	Id   uint32 `json:"id"`
+	Name string `json:"name"`
+}

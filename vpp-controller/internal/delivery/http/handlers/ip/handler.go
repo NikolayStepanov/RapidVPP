@@ -36,7 +36,7 @@ func (h *Handler) AddRoute(w http.ResponseWriter, r *http.Request) {
 	err = h.ip.AddRoute(r.Context(), route)
 	if err != nil {
 		logger.Error("Failed to add route", zap.Error(err))
-		http.Error(w, "Failed to add route", http.StatusBadRequest)
+		http.Error(w, "Failed to add route", http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -58,7 +58,7 @@ func (h *Handler) DeleteRoute(w http.ResponseWriter, r *http.Request) {
 	err = h.ip.DeleteRoute(r.Context(), route)
 	if err != nil {
 		logger.Error("Failed to delete route", zap.Error(err))
-		http.Error(w, "Failed to delete route", http.StatusBadRequest)
+		http.Error(w, "Failed to delete route", http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
@@ -80,7 +80,7 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	routes, err := h.ip.ListRoutes(r.Context(), vrf)
 	if err != nil {
 		logger.Error("Failed to get list routes", zap.Error(err))
-		http.Error(w, "Failed to get list routes", http.StatusBadRequest)
+		http.Error(w, "Failed to get list routes", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -144,4 +144,20 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}
+}
+
+func (h *Handler) CreateVRF(w http.ResponseWriter, r *http.Request) {
+	var req CreateVRFRequest
+	
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Warn("Invalid request body", zap.Error(err))
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+	}
+	err := h.ip.CreateVRF(r.Context(), req.Id, req.Name)
+	if err != nil {
+		logger.Error("Failed to create VRF", zap.Error(err))
+		http.Error(w, "Failed to create VRF", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
 }

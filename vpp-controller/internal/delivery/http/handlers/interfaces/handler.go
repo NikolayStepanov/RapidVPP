@@ -40,7 +40,7 @@ func (h *Handler) CreateLoopback(w http.ResponseWriter, r *http.Request) {
 	createLoopbackResponse, err := h.inter.CreateLoopback(r.Context())
 	if err != nil {
 		logger.Error("Failed to create loopback interfaces", zap.Error(err))
-		http.Error(w, "Failed to create loopback interfaces", http.StatusBadRequest)
+		http.Error(w, "Failed to create loopback interfaces", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -69,7 +69,7 @@ func (h *Handler) SetInterfaceState(w http.ResponseWriter, r *http.Request) {
 	err = h.inter.SetInterfaceAdminState(r.Context(), uint32(ifIndex), req.AdminUp)
 	if err != nil {
 		logger.Error("Failed to set interface state", zap.Error(err))
-		http.Error(w, "Failed to set interface state", http.StatusBadRequest)
+		http.Error(w, "Failed to set interface state", http.StatusInternalServerError)
 		return
 	}
 

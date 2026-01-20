@@ -149,8 +149,53 @@ func (s *Service) GetRoute(ctx context.Context, dst domain.IPWithPrefix, vrf uin
 }
 
 func (s *Service) CreateVRF(ctx context.Context, id uint32, name string) error {
-	//TODO implement me
-	panic("implement me")
+	ipv4Req := &ip.IPTableAddDel{
+		IsAdd: true,
+		Table: ip.IPTable{
+			TableID: id,
+			IsIP6:   false,
+			Name:    name,
+		},
+	}
+
+	_, err := vpp.DoRequest[*ip.IPTableAddDel, *ip.IPTableAddDelReply](s.client, ctx, ipv4Req)
+	if err != nil {
+		return fmt.Errorf("failed to create IPv4 VRF table: %w", err)
+	}
+
+	ipv6Req := &ip.IPTableAddDel{
+		IsAdd: true,
+		Table: ip.IPTable{
+			TableID: id,
+			IsIP6:   true,
+			Name:    name,
+		},
+	}
+
+	_, err = vpp.DoRequest[*ip.IPTableAddDel, *ip.IPTableAddDelReply](
+		s.client, ctx, ipv6Req)
+	if err != nil {
+		defer s.deleteVRF(ctx, id, name, false)
+		return fmt.Errorf("failed to create IPv6 VRF table: %w", err)
+	}
+	return nil
+}
+
+func (s *Service) deleteVRF(ctx context.Context, id uint32, name string, isIPv6 bool) error {
+	req := &ip.IPTableAddDel{
+		IsAdd: false,
+		Table: ip.IPTable{
+			TableID: id,
+			IsIP6:   isIPv6,
+			Name:    name,
+		},
+	}
+
+	_, err := vpp.DoRequest[*ip.IPTableAddDel, *ip.IPTableAddDelReply](s.client, ctx, req)
+	if err != nil {
+		return fmt.Errorf("failed to delete IPv4 VRF table: %w", err)
+	}
+	return nil
 }
 
 func (s *Service) DeleteVRF(ctx context.Context, id uint32) error {
