@@ -42,3 +42,19 @@ func (r *AddRouteRequest) ToDomain() (*domain.Route, error) {
 		NextHops: nextHops,
 	}, nil
 }
+
+func VRFToResponse(domains []domain.VRF) []VRFResponse {
+	res := make([]VRFResponse, 0, len(domains))
+
+	for _, v := range domains {
+		res = append(res, VRFResponse{
+			ID:         v.ID,
+			Name:       v.Name,
+			IPv4:       v.IPv4,
+			IPv6:       v.IPv6,
+			RouteCount: v.RouteCount,
+		})
+	}
+
+	return res
+}

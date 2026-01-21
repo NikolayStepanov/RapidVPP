@@ -26,6 +26,7 @@ type Route interface {
 }
 
 type VRF interface {
+	InitVRFCache(ctx context.Context) error
 	CreateVRF(ctx context.Context, id uint32, name string) error
 	DeleteVRF(ctx context.Context, id uint32) error
 	ListVRF(ctx context.Context) ([]domain.VRF, error)

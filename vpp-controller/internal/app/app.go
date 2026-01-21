@@ -39,6 +39,8 @@ func NewApp(config *config.Config) (*App, error) {
 	infoService := info.NewService(VPPClient)
 	interfaceService := interfaces.NewService(VPPClient)
 	IPService := ipServ.NewService(VPPClient)
+
+	services := service.NewServices(infoService, interfaceService, IPService)
 	handler := handlers.NewHandler(infoService, interfaceService, IPService)
 	server := server.NewServer(config, mw.LoggerMiddleware(handler))
 	return &App{
@@ -46,6 +48,7 @@ func NewApp(config *config.Config) (*App, error) {
 		server:    server,
 		handler:   handler,
 		vppClient: VPPClient,
+		services:  services,
 	}, nil
 }
 
@@ -69,6 +72,11 @@ func Run() {
 		logger.Fatal("error new app", zap.Error(err))
 	}
 	defer app.vppClient.Close()
+
+	err = app.services.IP.InitVRFCache(ctx)
+	if err != nil {
+		logger.Fatal("error init VRF cache", zap.Error(err))
+	}
 
 	go func() {
 		defer cancel()

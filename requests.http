@@ -50,17 +50,25 @@ Content-Type: application/json
   "prefix": 24
 }
 
+### create vrf
+POST {{host}}/vrf
+Content-Type: application/json
 
-### add route
+{
+  "id": 10,
+  "name": "vrf-10"
+}
+
+### add route 1
 POST {{host}}/routes
 Content-Type: application/json
 
 {
   "destination": "0.0.0.0/0",
-  "vrf": 0,
+  "vrf": 1,
   "next_hops": [
     {
-      "ip": "10.0.0.1",
+      "ip": "10.0.0.2",
       "if_index": 1,
       "weight": 1,
       "drop": false
@@ -68,33 +76,60 @@ Content-Type: application/json
   ]
 }
 
-### get list routes
-GET {{host}}/routes?vrf=0
-
-### get routes
-GET  {{host}}/routes/0?prefix=0.0.0.0/0
-
-### create vrf
-POST {{host}}/vrf
+### add route 2
+POST {{host}}/routes
 Content-Type: application/json
 
 {
-  "id": 1,
-  "name": "vrf-1"
+  "destination": "100.1.1.0/24",
+  "vrf": 1,
+  "next_hops": [
+    {
+      "ip": "192.168.1.1",
+      "if_index": 2,
+      "weight": 1,
+      "drop": false
+    }
+  ]
 }
 
+### get list routes
+GET {{host}}/routes?vrf=1
 
-### delete route
+### get routes
+GET  {{host}}/routes/1?prefix=0.0.0.0/0
+
+### get list vrf
+GET {{host}}/vrf
+
+### delete route 1
 DELETE {{host}}/routes
 Content-Type: application/json
 
 {
   "destination": "0.0.0.0/0",
-  "vrf": 0,
+  "vrf": 1,
   "next_hops": [
     {
-      "ip": "10.0.0.1",
+      "ip": "10.0.0.2",
       "if_index": 1,
+      "weight": 1,
+      "drop": false
+    }
+  ]
+}
+
+### delete route 2
+DELETE {{host}}/routes
+Content-Type: application/json
+
+{
+  "destination": "100.1.1.0/24",
+  "vrf": 1,
+  "next_hops": [
+    {
+      "ip": "192.168.1.1",
+      "if_index": 2,
       "weight": 1,
       "drop": false
     }

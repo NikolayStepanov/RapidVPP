@@ -148,7 +148,7 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) CreateVRF(w http.ResponseWriter, r *http.Request) {
 	var req CreateVRFRequest
-	
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		logger.Warn("Invalid request body", zap.Error(err))
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
@@ -160,4 +160,22 @@ func (h *Handler) CreateVRF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
+}
+
+func (h *Handler) ListVRF(w http.ResponseWriter, r *http.Request) {
+	vrfs, err := h.ip.ListVRF(r.Context())
+	if err != nil {
+		logger.Error("Failed to list VRF", zap.Error(err))
+		http.Error(w, "Failed to list VRF", http.StatusInternalServerError)
+		return
+	}
+
+	response := VRFToResponse(vrfs)
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		logger.Error("Failed to encode response", zap.Error(err))
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
 }

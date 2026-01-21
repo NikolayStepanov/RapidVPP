@@ -1,6 +1,8 @@
 package domain
 
-import "net"
+import (
+	"net"
+)
 
 // Route represents a routing table entry
 type Route struct {
@@ -34,6 +36,13 @@ type NextHop struct {
 
 // VRF Virtual Routing and Forwarding
 type VRF struct {
-	ID   uint32
+	ID         uint32
+	Name       string
+	IPv4       bool
+	IPv6       bool
+	RouteCount int
+}
+
+type VRFEntry struct {
 	Name string
 }

@@ -97,27 +97,23 @@ func ConvertFibPathToDomainNextHop(path fib_types.FibPath) (domain.NextHop, erro
 		return domain.NextHop{}, fmt.Errorf("unsupported path type: %v", path.Type)
 	}
 
-	var ipAddr net.IP
+	var ip net.IP
 
 	switch path.Proto {
 	case fib_types.FIB_API_PATH_NH_PROTO_IP4:
 		ip4 := path.Nh.Address.GetIP4()
-		if ip4 == [4]uint8{} {
-			return domain.NextHop{}, errors.New("next-hop ipv4 is empty")
+		if ip4 != [4]uint8{} {
+			ip = ip4[:]
 		}
-		ipAddr = ip4[:]
-
 	case fib_types.FIB_API_PATH_NH_PROTO_IP6:
 		ip6 := path.Nh.Address.GetIP6()
-		if ip6 == [16]uint8{} {
-			return domain.NextHop{}, errors.New("next-hop ipv6 is empty")
+		if ip6 != [16]uint8{} {
+			ip = ip6[:]
 		}
-		ipAddr = ip6[:]
-
 	default:
 		return domain.NextHop{}, fmt.Errorf("unsupported protocol: %v", path.Proto)
 	}
 
-	nextHop.IP = ipAddr
+	nextHop.IP = ip
 	return nextHop, nil
 }
