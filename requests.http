@@ -55,8 +55,8 @@ POST {{host}}/vrf
 Content-Type: application/json
 
 {
-  "id": 10,
-  "name": "vrf-10"
+  "id": 1,
+  "name": "vrf-1"
 }
 
 ### add route 1
@@ -135,6 +135,10 @@ Content-Type: application/json
     }
   ]
 }
+
+### delete vfr 1
+DELETE {{host}}/vrf/1
+
 
 ### delete loopback interface 1
 DELETE {{host}}/interfaces/1

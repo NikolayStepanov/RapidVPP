@@ -2,6 +2,7 @@ package ip
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -97,6 +98,21 @@ func (s *Service) addVRFsFromCache(vrfMap map[uint32]*domain.VRF) {
 			}
 		}
 	}
+}
+
+func (s *Service) getEntryVRFCache(id uint32) (*domain.VRFEntry, error) {
+	s.vrfCache.mu.RLock()
+	defer s.vrfCache.mu.RUnlock()
+	entry, ok := s.vrfCache.data[id]
+	if !ok {
+		return nil, fmt.Errorf("VRF with ID %d not found in cache", id)
+	}
+	return entry, nil
+}
+func (s *Service) deleteVRFCache(id uint32) {
+	s.vrfCache.mu.Lock()
+	defer s.vrfCache.mu.Unlock()
+	delete(s.vrfCache.data, id)
 }
 
 func IsSystemRoute(details *ip.IPRouteDetails) bool {
@@ -307,7 +323,7 @@ func (s *Service) deleteVRF(ctx context.Context, id uint32, name string, isIPv6 
 
 	_, err := vpp.DoRequest[*ip.IPTableAddDel, *ip.IPTableAddDelReply](s.client, ctx, req)
 	if err != nil {
-		return fmt.Errorf("failed to delete IPv4 VRF table: %w", err)
+		return fmt.Errorf("failed to delete VRF table: %w", err)
 	}
 	return nil
 }
@@ -332,8 +348,30 @@ func (s *Service) addOrUpdateVRFCache(id uint32, name string) {
 }
 
 func (s *Service) DeleteVRF(ctx context.Context, id uint32) error {
-	//TODO implement me
-	panic("implement me")
+	vfrEntry, err := s.getEntryVRFCache(id)
+	if err != nil {
+		return err
+	}
+	var errs []error
+
+	errIPv4 := s.deleteVRF(ctx, id, vfrEntry.Name, false)
+	if errIPv4 != nil {
+		errs = append(errs, fmt.Errorf("IPv4: %w", errIPv4))
+	}
+
+	errIPv6 := s.deleteVRF(ctx, id, vfrEntry.Name, true)
+	if errIPv6 != nil {
+		errs = append(errs, fmt.Errorf("IPv6: %w", errIPv6))
+	}
+
+	if err = errors.Join(errs...); err != nil {
+		s.deleteVRFCache(id)
+		return fmt.Errorf("failed to delete VRF tables: %w", err)
+	}
+
+	s.deleteVRFCache(id)
+
+	return nil
 }
 
 func (s *Service) ListVRF(ctx context.Context) ([]domain.VRF, error) {

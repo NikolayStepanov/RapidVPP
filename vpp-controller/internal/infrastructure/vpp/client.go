@@ -183,12 +183,11 @@ func Dump[T any](
 
 	messages, err := client.SendMultiRequest(ctx, request)
 	if err != nil {
-		logger.Debug("dump request failed", zap.Error(err))
+		logger.Error("dump request failed", zap.Error(err))
 		return nil, err
 	}
 	for _, message := range messages {
 		if item, ok := converter(message); ok {
-			logger.Debug("dump message received", zap.Any("message", item))
 			results = append(results, item)
 		}
 	}

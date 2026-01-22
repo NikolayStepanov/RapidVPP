@@ -179,3 +179,21 @@ func (h *Handler) ListVRF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (h *Handler) DeleteVRF(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		logger.Warn("Invalid ID VRF in request", zap.String("id", idStr), zap.Error(err))
+		http.Error(w, "Invalid ID VRF", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.ip.DeleteVRF(r.Context(), uint32(id)); err != nil {
+		logger.Error("Failed to delete VRF", zap.Uint64("ID", id), zap.Error(err))
+	} else {
+		logger.Info("VRF deleted successfully", zap.Uint64("ID", id))
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
