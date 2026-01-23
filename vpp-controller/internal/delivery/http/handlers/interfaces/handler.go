@@ -129,3 +129,27 @@ func (h *Handler) AddInterfaceIP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (h *Handler) AttachACL(w http.ResponseWriter, r *http.Request) {
+	var req AttachACLRequest
+	idStr := r.PathValue("id")
+	ifIndex, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		logger.Warn("Invalid index interface in request", zap.String("id", idStr), zap.Error(err))
+		http.Error(w, "Invalid index interface", http.StatusBadRequest)
+		return
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		logger.Warn("Invalid request body", zap.Error(err))
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+	}
+
+	err = h.inter.AttachACL(r.Context(), uint32(ifIndex), req.AclId, req.Direction)
+	if err != nil {
+		logger.Error("Failed to attach ACL interface", zap.Error(err))
+		http.Error(w, "Failed to attach ACL interface", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

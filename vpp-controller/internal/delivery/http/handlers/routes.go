@@ -9,6 +9,10 @@ func (h *Handler) setupRoutes() {
 	h.router.HandleFunc("DELETE /interfaces/{id}", h.interfaceHandler.DeleteLoopback)
 	h.router.HandleFunc("POST /interfaces/{id}/ip", h.interfaceHandler.AddInterfaceIP)
 
+	h.router.HandleFunc("POST /interfaces/{id}/acl", h.interfaceHandler.AttachACL)
+	//h.router.HandleFunc("DELETE /interfaces/{id}/acl/{acl}",)
+	//h.router.HandleFunc("GET /interfaces/{id}/acl",)
+
 	h.router.HandleFunc("POST /routes", h.ipHandler.AddRoute)
 	h.router.HandleFunc("DELETE /routes", h.ipHandler.DeleteRoute)
 	h.router.HandleFunc("GET /routes", h.ipHandler.List)

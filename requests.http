@@ -155,7 +155,7 @@ Content-Type: application/json
 }
 
 ### update acl 1
-PUT {{host}}/acl/3
+PUT {{host}}/acl/1
 Content-Type: application/json
 
 {
@@ -177,6 +177,25 @@ Content-Type: application/json
 
 ### get list acls
 GET {{host}}/acl
+
+
+### attach acl 0 interface 1
+POST {{host}}/interfaces/1/acl
+Content-Type: application/json
+
+{
+  "acl_id": 0,
+  "direction": 1
+}
+
+### attach acl 1 interface 1
+POST {{host}}/interfaces/2/acl
+Content-Type: application/json
+
+{
+  "acl_id": 1,
+  "direction": 0
+}
 
 ### delete route 1
 DELETE {{host}}/routes

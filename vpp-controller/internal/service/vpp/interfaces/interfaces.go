@@ -10,6 +10,7 @@ import (
 	"github.com/NikolayStepanov/RapidVPP/internal/infrastructure/vpp"
 	"github.com/NikolayStepanov/RapidVPP/pkg/logger"
 	"go.fd.io/govpp/api"
+	"go.fd.io/govpp/binapi/acl"
 	interfaces "go.fd.io/govpp/binapi/interface"
 	"go.fd.io/govpp/binapi/interface_types"
 	"go.fd.io/govpp/binapi/ip_types"
@@ -19,6 +20,11 @@ import (
 var (
 	ErrNotFound      = errors.New("interface not found")
 	ErrAlreadyExists = errors.New("resource already exists")
+)
+
+const (
+	ACLDirOutput uint8 = 0 // tx
+	ACLDirInput  uint8 = 1 // rx
 )
 
 type (
@@ -121,4 +127,32 @@ func mapVppError(err error) error {
 		return ErrAlreadyExists
 	}
 	return err
+}
+
+func (s *Service) AttachACL(ctx context.Context, ifIndex uint32, aclID uint32, dir uint8) error {
+	var isInput bool
+
+	switch dir {
+	case ACLDirInput:
+		isInput = true
+	case ACLDirOutput:
+		isInput = false
+	default:
+		return fmt.Errorf("invalid ACL direction: %d", dir)
+	}
+
+	req := &acl.ACLInterfaceAddDel{
+		IsAdd:     true,
+		IsInput:   isInput,
+		SwIfIndex: interface_types.InterfaceIndex(ifIndex),
+		ACLIndex:  aclID,
+	}
+
+	_, err := vpp.DoRequest[*acl.ACLInterfaceAddDel, *acl.ACLInterfaceAddDelReply](s.client, ctx, req)
+
+	if err != nil {
+		return fmt.Errorf("failed to attach acl %d to interface %d (dir=%d): %w", aclID, ifIndex, dir, err)
+	}
+
+	return nil
 }
