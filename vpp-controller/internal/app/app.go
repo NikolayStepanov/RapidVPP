@@ -14,6 +14,7 @@ import (
 	"github.com/NikolayStepanov/RapidVPP/internal/mw"
 	"github.com/NikolayStepanov/RapidVPP/internal/server"
 	"github.com/NikolayStepanov/RapidVPP/internal/service"
+	"github.com/NikolayStepanov/RapidVPP/internal/service/vpp/acl"
 	"github.com/NikolayStepanov/RapidVPP/internal/service/vpp/info"
 	"github.com/NikolayStepanov/RapidVPP/internal/service/vpp/interfaces"
 	ipServ "github.com/NikolayStepanov/RapidVPP/internal/service/vpp/ip"
@@ -39,9 +40,10 @@ func NewApp(config *config.Config) (*App, error) {
 	infoService := info.NewService(VPPClient)
 	interfaceService := interfaces.NewService(VPPClient)
 	IPService := ipServ.NewService(VPPClient)
+	aclService := acl.NewService(VPPClient)
 
-	services := service.NewServices(infoService, interfaceService, IPService)
-	handler := handlers.NewHandler(infoService, interfaceService, IPService)
+	services := service.NewServices(infoService, interfaceService, IPService, aclService)
+	handler := handlers.NewHandler(infoService, interfaceService, IPService, aclService)
 	server := server.NewServer(config, mw.LoggerMiddleware(handler))
 	return &App{
 		config:    config,

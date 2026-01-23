@@ -102,6 +102,79 @@ GET  {{host}}/routes/1?prefix=0.0.0.0/0
 ### get list vrf
 GET {{host}}/vrf
 
+### create acl
+POST {{host}}/acl
+Content-Type: application/json
+
+{
+  "name": "example-acl",
+  "rules": [
+    {
+      "action": 1,
+      "proto": 6,
+      "src": {"address": "10.0.0.0", "prefix": 24},
+      "dst": {"address": "10.0.0.10", "prefix": 32},
+      "src_port_low": 0,
+      "src_port_high": 65535,
+      "dst_port_low": 443,
+      "dst_port_high": 443,
+      "tcp_flags_mask": 0,
+      "tcp_flags_value": 0
+    },
+    {
+      "action": 0,
+      "proto": 6,
+      "src": {"address": "10.0.1.0", "prefix": 24},
+      "dst": {"address": "10.0.0.10", "prefix": 32},
+      "src_port_low": 0,
+      "src_port_high": 65535,
+      "dst_port_low": 22,
+      "dst_port_high": 22,
+      "tcp_flags_mask": 0,
+      "tcp_flags_value": 0
+    }
+  ]
+}
+
+### create acl ip6
+POST {{host}}/acl
+Content-Type: application/json
+
+{
+  "name": "example-acl-ip6",
+  "rules": [
+    {
+      "action": 1,
+      "proto": 6,
+      "src": {"address": "2001:db8:1::", "prefix": 64},
+      "dst": {"address": "2001:db8:2::10", "prefix": 128},
+      "dst_port_low": 443,
+      "dst_port_high": 443
+    }
+  ]
+}
+
+### update acl 1
+PUT {{host}}/acl/3
+Content-Type: application/json
+
+{
+  "rules": [
+    {
+      "action": 1,
+      "proto": 6,
+      "src": {"address": "10.0.0.0", "prefix": 24},
+      "dst": {"address": "10.0.0.10", "prefix": 32},
+      "src_port_low": 0,
+      "src_port_high": 65535,
+      "dst_port_low": 443,
+      "dst_port_high": 443,
+      "tcp_flags_mask": 0,
+      "tcp_flags_value": 0
+    }
+  ]
+}
+
 ### delete route 1
 DELETE {{host}}/routes
 Content-Type: application/json
@@ -138,7 +211,6 @@ Content-Type: application/json
 
 ### delete vfr 1
 DELETE {{host}}/vrf/1
-
 
 ### delete loopback interface 1
 DELETE {{host}}/interfaces/1

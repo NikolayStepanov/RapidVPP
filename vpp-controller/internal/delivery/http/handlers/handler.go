@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/NikolayStepanov/RapidVPP/internal/delivery/http/handlers/Interfaces"
+	"github.com/NikolayStepanov/RapidVPP/internal/delivery/http/handlers/acl"
 	"github.com/NikolayStepanov/RapidVPP/internal/delivery/http/handlers/ip"
 	"github.com/NikolayStepanov/RapidVPP/internal/delivery/http/handlers/vpp"
 	"github.com/NikolayStepanov/RapidVPP/internal/service"
@@ -14,14 +15,16 @@ type Handler struct {
 	vppHandler       *vpp.Handler
 	interfaceHandler *interfaces.Handler
 	ipHandler        *ip.Handler
+	aclHandler       *acl.Handler
 }
 
-func NewHandler(info service.Info, inter service.Interface, IPServ service.IP) *Handler {
+func NewHandler(info service.Info, inter service.Interface, IPServ service.IP, aclSer service.ACL) *Handler {
 	handler := &Handler{
 		router:           http.NewServeMux(),
 		vppHandler:       vpp.NewHandler(info),
 		interfaceHandler: interfaces.NewHandler(inter),
 		ipHandler:        ip.NewHandler(IPServ),
+		aclHandler:       acl.NewHandler(aclSer),
 	}
 
 	handler.setupRoutes()

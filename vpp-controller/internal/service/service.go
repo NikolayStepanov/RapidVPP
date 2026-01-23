@@ -32,6 +32,14 @@ type VRF interface {
 	ListVRF(ctx context.Context) ([]domain.VRF, error)
 }
 
+type ACL interface {
+	Create(ctx context.Context, name string, rules []domain.ACLRule) (domain.AclID, error)
+	Update(ctx context.Context, id domain.AclID, rules []domain.ACLRule) error
+	Delete(ctx context.Context, id domain.AclID) error
+	Get(ctx context.Context, id domain.AclID) (domain.ACLInfo, error)
+	List(ctx context.Context) ([]domain.ACLInfo, error)
+}
+
 type IP interface {
 	Route
 	VRF
@@ -41,8 +49,14 @@ type Services struct {
 	Info      Info
 	Interface Interface
 	IP        IP
+	ACL       ACL
 }
 
-func NewServices(info Info, inter Interface, IPService IP) *Services {
-	return &Services{info, inter, IPService}
+func NewServices(info Info, inter Interface, IPService IP, acl ACL) *Services {
+	return &Services{
+		info,
+		inter,
+		IPService,
+		acl,
+	}
 }
