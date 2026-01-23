@@ -73,3 +73,21 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	aclID, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		logger.Warn("Invalid index acl in request", zap.String("id", idStr), zap.Error(err))
+		http.Error(w, "Invalid index acl", http.StatusBadRequest)
+		return
+	}
+	id := domain.AclID(uint32(aclID))
+	if err := h.acl.Delete(r.Context(), id); err != nil {
+		logger.Error("Failed to delete ACL", zap.Uint64("aclID", aclID), zap.Error(err))
+	} else {
+		logger.Info("ACL deleted successfully", zap.Uint64("aclID", aclID))
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

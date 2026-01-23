@@ -60,8 +60,16 @@ func (s Service) Update(ctx context.Context, id domain.AclID, rules []domain.ACL
 }
 
 func (s Service) Delete(ctx context.Context, id domain.AclID) error {
-	//TODO implement me
-	panic("implement me")
+	req := &acl.ACLDel{
+		ACLIndex: uint32(id),
+	}
+	
+	_, err := vpp.DoRequest[*acl.ACLDel, *acl.ACLDelReply](s.client, ctx, req)
+	if err != nil {
+		return fmt.Errorf("failed to delete ACL %d: %w", id, err)
+	}
+
+	return nil
 }
 
 func (s Service) Get(ctx context.Context, id domain.AclID) (domain.ACLInfo, error) {

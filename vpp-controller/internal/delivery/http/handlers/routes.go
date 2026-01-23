@@ -16,4 +16,5 @@ func (h *Handler) setupRoutes() {
 	h.router.HandleFunc("DELETE /vrf/{id}", h.ipHandler.DeleteVRF)
 	h.router.HandleFunc("POST /acl", h.aclHandler.Create)
 	h.router.HandleFunc("PUT /acl/{id}", h.aclHandler.Update)
+	h.router.HandleFunc("DELETE /acl/{id}", h.aclHandler.Delete)
 }

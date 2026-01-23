@@ -209,6 +209,12 @@ Content-Type: application/json
   ]
 }
 
+### delete acl 0
+DELETE {{host}}/acl/0
+
+### delete acl 1
+DELETE {{host}}/acl/1
+
 ### delete vfr 1
 DELETE {{host}}/vrf/1
 
