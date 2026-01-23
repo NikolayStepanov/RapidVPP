@@ -36,7 +36,6 @@ type ACL interface {
 	Create(ctx context.Context, name string, rules []domain.ACLRule) (domain.AclID, error)
 	Update(ctx context.Context, id domain.AclID, rules []domain.ACLRule) error
 	Delete(ctx context.Context, id domain.AclID) error
-	Get(ctx context.Context, id domain.AclID) (domain.ACLInfo, error)
 	List(ctx context.Context) ([]domain.ACLInfo, error)
 }
 

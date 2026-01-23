@@ -23,6 +23,6 @@ type NextHopRequest struct {
 }
 
 type CreateVRFRequest struct {
-	Id   uint32 `json:"id"`
+	ID   uint32 `json:"id"`
 	Name string `json:"name"`
 }

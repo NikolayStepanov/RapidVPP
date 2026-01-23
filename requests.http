@@ -175,6 +175,9 @@ Content-Type: application/json
   ]
 }
 
+### get list acls
+GET {{host}}/acl
+
 ### delete route 1
 DELETE {{host}}/routes
 Content-Type: application/json

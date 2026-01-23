@@ -91,3 +91,21 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
+	var resp ListACLResponse
+	acls, err := h.acl.List(r.Context())
+	if err != nil {
+		logger.Error("Failed to list ACL", zap.Error(err))
+		http.Error(w, "Failed to list ACL", http.StatusInternalServerError)
+		return
+	}
+
+	resp = ListACLResponse{InfosToResponse(acls)}
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		logger.Error("Failed to encode response", zap.Error(err))
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+}

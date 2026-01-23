@@ -88,3 +88,40 @@ func ConvertACLRules(rules []domain.ACLRule) ([]acl_types.ACLRule, error) {
 	}
 	return aclRules, nil
 }
+
+func ConvertVPPACLRule(rule acl_types.ACLRule) (domain.ACLRule, error) {
+	src, err := IPWithPrefixFromTypes(rule.SrcPrefix)
+	if err != nil {
+		return domain.ACLRule{}, fmt.Errorf("invalid src prefix: %w", err)
+	}
+
+	dst, err := IPWithPrefixFromTypes(rule.DstPrefix)
+	if err != nil {
+		return domain.ACLRule{}, fmt.Errorf("invalid dst prefix: %w", err)
+	}
+
+	return domain.ACLRule{
+		Action:        domain.ACLAction(rule.IsPermit),
+		Proto:         uint8(rule.Proto),
+		Src:           src,
+		Dst:           dst,
+		SrcPortLow:    rule.SrcportOrIcmptypeFirst,
+		SrcPortHigh:   rule.SrcportOrIcmptypeLast,
+		DstPortLow:    rule.DstportOrIcmpcodeFirst,
+		DstPortHigh:   rule.DstportOrIcmpcodeLast,
+		TCPFlagsMask:  rule.TCPFlagsMask,
+		TCPFlagsValue: rule.TCPFlagsValue,
+	}, nil
+}
+
+func ConvertVPPACLRules(rules []acl_types.ACLRule) ([]domain.ACLRule, error) {
+	domainRules := make([]domain.ACLRule, 0, len(rules))
+	for _, r := range rules {
+		rule, err := ConvertVPPACLRule(r)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert rule: %w", err)
+		}
+		domainRules = append(domainRules, rule)
+	}
+	return domainRules, nil
+}

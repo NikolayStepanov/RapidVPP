@@ -153,7 +153,7 @@ func (h *Handler) CreateVRF(w http.ResponseWriter, r *http.Request) {
 		logger.Warn("Invalid request body", zap.Error(err))
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 	}
-	err := h.ip.CreateVRF(r.Context(), req.Id, req.Name)
+	err := h.ip.CreateVRF(r.Context(), req.ID, req.Name)
 	if err != nil {
 		logger.Error("Failed to create VRF", zap.Error(err))
 		http.Error(w, "Failed to create VRF", http.StatusInternalServerError)
