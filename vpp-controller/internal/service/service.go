@@ -17,6 +17,7 @@ type Interface interface {
 	SetInterfaceAdminState(ctx context.Context, ifIndex uint32, up bool) error
 	SetInterfaceIP(ctx context.Context, ifIndex uint32, IPPrefix domain.IPWithPrefix) error
 	AttachACL(ctx context.Context, ifIndex uint32, aclID uint32, dir uint8) error
+	DetachACL(ctx context.Context, ifIndex uint32, aclID uint32, dir uint8) error
 }
 
 type Route interface {

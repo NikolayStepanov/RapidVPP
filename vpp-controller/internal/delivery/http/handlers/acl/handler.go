@@ -100,7 +100,6 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to list ACL", http.StatusInternalServerError)
 		return
 	}
-
 	resp = ListACLResponse{InfosToResponse(acls)}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {

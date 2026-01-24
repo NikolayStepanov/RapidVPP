@@ -74,7 +74,9 @@ func (s *Service) Delete(ctx context.Context, id domain.AclID) error {
 }
 
 func (s *Service) List(ctx context.Context) ([]domain.ACLInfo, error) {
-	request := &acl.ACLDump{}
+	request := &acl.ACLDump{
+		ACLIndex: 0xFFFFFFFF,
+	}
 
 	converter := func(msg api.Message) (domain.ACLInfo, bool) {
 		details, ok := msg.(*acl.ACLDetails)

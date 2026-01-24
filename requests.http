@@ -188,8 +188,26 @@ Content-Type: application/json
   "direction": 1
 }
 
-### attach acl 1 interface 1
+### attach acl 1 interface 2
 POST {{host}}/interfaces/2/acl
+Content-Type: application/json
+
+{
+  "acl_id": 1,
+  "direction": 0
+}
+
+### detach acl 0 interface 1
+DELETE {{host}}/interfaces/1/acl
+Content-Type: application/json
+
+{
+  "acl_id": 0,
+  "direction": 1
+}
+
+### detach acl 1 interface 2
+DELETE {{host}}/interfaces/2/acl
 Content-Type: application/json
 
 {

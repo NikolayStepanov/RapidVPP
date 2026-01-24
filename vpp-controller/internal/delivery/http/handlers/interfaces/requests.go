@@ -13,3 +13,8 @@ type AttachACLRequest struct {
 	AclId     uint32 `json:"acl_id"`
 	Direction uint8  `json:"direction"`
 }
+
+type DetachACLRequest struct {
+	AclId     uint32 `json:"acl_id"`
+	Direction uint8  `json:"direction"`
+}
