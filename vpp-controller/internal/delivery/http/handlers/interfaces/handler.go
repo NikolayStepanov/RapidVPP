@@ -178,3 +178,27 @@ func (h *Handler) DetachACL(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (h *Handler) ListACL(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	ifIndex, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		logger.Warn("Invalid index interface in request", zap.String("id", idStr), zap.Error(err))
+		http.Error(w, "Invalid index interface", http.StatusBadRequest)
+		return
+	}
+
+	aclList, err := h.inter.ListACL(r.Context(), uint32(ifIndex))
+	if err != nil {
+		logger.Error("Failed to get list acl interface", zap.Error(err))
+		http.Error(w, "Failed to get list acl interface", http.StatusBadRequest)
+		return
+	}
+	aclListDTO := ACLInterfaceListToDTO(aclList)
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(aclListDTO); err != nil {
+		logger.Error("Failed to encode response", zap.Error(err))
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+}

@@ -178,6 +178,8 @@ Content-Type: application/json
 ### get list acls
 GET {{host}}/acl
 
+### get list acls for interface 1
+GET {{host}}/interfaces/1/acl
 
 ### attach acl 0 interface 1
 POST {{host}}/interfaces/1/acl

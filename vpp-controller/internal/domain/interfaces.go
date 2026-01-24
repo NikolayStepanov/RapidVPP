@@ -12,3 +12,10 @@ type IPWithPrefix struct {
 func (ip IPWithPrefix) ToNetIP() net.IP {
 	return net.ParseIP(ip.Address)
 }
+
+type ACLInterfaceList struct {
+	InterfaceID uint32
+	Count       uint8
+	InputACLs   []uint32
+	OutputACLs  []uint32
+}

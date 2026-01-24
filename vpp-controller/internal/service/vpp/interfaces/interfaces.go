@@ -172,6 +172,32 @@ func (s *Service) DetachACL(ctx context.Context, ifIndex uint32, aclID uint32, d
 	return nil
 }
 
+func (s *Service) ListACL(ctx context.Context, ifIndex uint32) (domain.ACLInterfaceList, error) {
+	req := &acl.ACLInterfaceListDump{
+		SwIfIndex: interface_types.InterfaceIndex(ifIndex),
+	}
+
+	converter := func(msg api.Message) (domain.ACLInterfaceList, bool) {
+		details, ok := msg.(*acl.ACLInterfaceListDetails)
+		if !ok {
+			return domain.ACLInterfaceList{}, false
+		}
+
+		return domain.ACLInterfaceList{
+			InterfaceID: uint32(details.SwIfIndex),
+			Count:       details.Count,
+			InputACLs:   details.Acls[:details.NInput],
+			OutputACLs:  details.Acls[details.NInput:],
+		}, true
+	}
+
+	results, err := vpp.Dump(ctx, s.client, req, converter)
+	if err != nil {
+		return domain.ACLInterfaceList{}, err
+	}
+	return results[0], nil
+}
+
 func aclDirToIsInput(dir uint8) (bool, error) {
 	switch dir {
 	case ACLDirInput:

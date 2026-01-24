@@ -18,6 +18,7 @@ type Interface interface {
 	SetInterfaceIP(ctx context.Context, ifIndex uint32, IPPrefix domain.IPWithPrefix) error
 	AttachACL(ctx context.Context, ifIndex uint32, aclID uint32, dir uint8) error
 	DetachACL(ctx context.Context, ifIndex uint32, aclID uint32, dir uint8) error
+	ListACL(ctx context.Context, ifIndex uint32) (domain.ACLInterfaceList, error)
 }
 
 type Route interface {
